@@ -15,5 +15,8 @@
     "dynamodb",
     "orm",
     "mapper"
-  ]
+  ],
+  "dependencies": {
+    "aws-sdk": "^2.249.1"
+  }
 }

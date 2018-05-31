@@ -1,5 +1,5 @@
 const dynoMongo = require("./");
-const keys = require("../config/keys");
+const keys = require("./config/keys");
 const dynoUtils = require("./lib/DynoUtils");
 const uuidv1 = require("uuid/v1");
 const { Schema } = dynoMongo;
