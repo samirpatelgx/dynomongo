@@ -1,0 +1,19 @@
+{
+  "name": "dynomongo",
+  "version": "1.0.0",
+  "description": "DynamoDB Mapper",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Samir Patel <samirpatelgx@gmail.com>",
+  "license": "ISC",
+  "keywords": [
+    "dynamodb",
+    "orm",
+    "mapper"
+  ]
+}
