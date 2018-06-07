@@ -6,6 +6,7 @@ const Model = require("./lib/Model");
 class DynoMongo {
   constructor() {
     this.blueprints = {};
+    this.endpointURL = null
     this.AWS = awssdk;
     this.ddb = new awssdk.DynamoDB(() => {
       if (this.endpointURL) {
@@ -20,22 +21,27 @@ class DynoMongo {
     this.Schema = Schema;
   }
   model(name, schema, options) {
-    const bluePrint = this.blueprints[name]
-    if (bluePrint) {
-      return bluePrint["model"] ;
+    if (this.blueprints[name]) {
+      return Model.bind(null,name,this.blueprints);
     }
     if (!(schema instanceof Schema)) {
       schema = new Schema(schema, options);
     }
-    let blueprint = Model.compile(name, schema, options, this);
-    this.blueprints[name] = blueprint;
-    return blueprint.table;
+    let getTableRef = Model.compile(name, schema, this, options);
+    this.blueprints[name] = {};
+    this.blueprints[name].table = getTableRef;
+    // this.blueprints[name].oldModel = [];
+    // this.blueprints[name].newModel = [];
+    return getTableRef;
   }
   // static AWS() {
   //   return awssdk
   // }
   local(url) {
     this.endpointURL = url || "http://localhost:8000";
+    this.ddb = new this.AWS.DynamoDB({
+      endpoint: new this.AWS.Endpoint(this.endpointURL)
+    })
   }
 }
 module.exports = new DynoMongo;
