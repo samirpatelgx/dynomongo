@@ -18,15 +18,17 @@ dynoMongo.local();
 const { personObject, personSchemaDdb } = testObjects;
 
 var personSchema = new Schema({
-  peopleId: {
-    type: "string",
-    hashKey: true
-  },
-  count: {
-    type: "number",
-    rangeKey: true
-  },
-  throughput: 2
+  primary: {
+    peopleId: {
+      type: "string",
+      hashKey: true
+    },
+    count: {
+      type: "number",
+      rangeKey: true
+    },
+    throughput: 2
+  }
 })
 
 // personSchema = dynoMongo.model("person_test_schema_one", personSchema);

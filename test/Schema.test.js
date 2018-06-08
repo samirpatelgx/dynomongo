@@ -6,15 +6,17 @@ const keys = require("../config/keys");
 const dynoUtils = require("../lib/DynoUtils");
 
 let newPerson = {
-  peopleId: {
-    type: "string",
-    hashKey: true
-  },
-  count: {
-    type: "number",
-    rangeKey: true
-  },
-  throughput: 2
+  primary: {
+    peopleId: {
+      type: "string",
+      hashKey: true
+    },
+    count: {
+      type: "number",
+      rangeKey: true
+    },
+    throughput: 2
+  }
 };
 
 describe("Schema test", () => {

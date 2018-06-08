@@ -15,15 +15,17 @@ dynoMongo.local();
 var personSchema, personTable, Person, newPerson, keySchema, newSchema, tableName
 
 personSchema = new Schema({
-  peopleId: {
-    type: "string",
-    hashKey: true
-  },
-  count: {
-    type: "number",
-    rangeKey: true
-  },
-  throughput: 2
+  primary: {
+    peopleId: {
+      type: "string",
+      hashKey: true
+    },
+    count: {
+      type: "number",
+      rangeKey: true
+    },
+    throughput: 2
+  }
 })
 
 
