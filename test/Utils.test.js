@@ -4,7 +4,7 @@ const { Schema } = require("../");
 
 const { personObject, personSchemaDdb } = testObjects;
 
-var personSchema = new Schema({
+personSchema = new Schema({
   primary: {
     peopleId: {
       type: "string",
@@ -15,8 +15,18 @@ var personSchema = new Schema({
       rangeKey: true
     },
     throughput: 2
-  }
-});
+  },
+  global: [{
+    otherId: {
+      type: "string",
+      required: true,
+      hashKey: true,
+      name: "googleId_index",
+      project: "ALL"
+    },
+    throughput: 2
+  }]
+})
 
 describe("Create Keys",() => {
   let keySchemaParams
@@ -24,11 +34,29 @@ describe("Create Keys",() => {
     keySchemaParams = dynoUtils.createDynamoTree(personSchema.obj);
   });
   it ("should create key schema", () => {
-    // console.log(personSchema);
-    // console.log(keySchemaParams);
     const expectedValue = {
-      TableName: personSchema.name,
-      Key : keySchemaParams
+      "global": [{
+        "otherId": {
+          "hashKey": true,
+          "name": "googleId_index",
+          "project": "ALL",
+          "required": true,
+          "type": "string"
+        },
+        "throughput": 2
+      }],
+      "primary": {
+        "count": {
+          "rangeKey": true,
+          "type": "number"
+        },
+        "peopleId": {
+          "hashKey": true,
+          "type": "string"
+        },
+        "throughput": 2
+      }
     };
+    expect(dynoUtils.createDynToJsonTree(keySchemaParams)).toEqual(expectedValue);
   });
 });

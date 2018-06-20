@@ -28,7 +28,17 @@ var personSchema = new Schema({
       rangeKey: true
     },
     throughput: 2
-  }
+  },
+  global: [{
+    otherId: {
+      type: "string",
+      required: true,
+      hashKey: true,
+      name: "googleId_index",
+      project: "ALL"
+    },
+    throughput: 2
+  }]
 })
 
 // personSchema = dynoMongo.model("person_test_schema_one", personSchema);

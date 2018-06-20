@@ -1,3 +1,4 @@
+"use strict";
 const awssdk = require("aws-sdk");
 const https = require("https");
 const Schema = require("./lib/Schema");
@@ -22,7 +23,10 @@ class DynoMongo {
   }
   model(name, schema, options) {
     if (this.blueprints[name]) {
-      return Model.bind(null,name,this.blueprints);
+      let bindedModel = Model.bind(null,name,this.blueprints);
+      bindedModel.get = Model.get.bind(this.blueprints[name].table);
+      bindedModel.query = Model.query.bind(this.blueprints[name].table);
+      return bindedModel
     }
     if (!(schema instanceof Schema)) {
       schema = new Schema(schema, options);
