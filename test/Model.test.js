@@ -1,3 +1,4 @@
+"use strict";
 const dynoMongo = require("../");
 const dynoUtils = require("../lib/DynoUtils");
 const testObjects = require("./testObjects")
@@ -12,7 +13,7 @@ dynoMongo.AWS.config.update({
 });
 
 dynoMongo.local();
-var personSchema, personTable, Person, newPerson, keySchema, newSchema, tableName
+var personSchema, personTable, Person, newPerson, keySchema, new_query, newSchema, tableName
 
 personSchema = new Schema({
   primary: {
@@ -61,7 +62,8 @@ describe("Model tests", () => {
     })
     describe("Put Item", () => {
       beforeEach(() => {
-        keySchema = dynoUtils.getKeySchema(newPerson); // Here is what needs fixing - Need to create function that only works off Table.js and not Model.js
+        keySchema = { peopleId : newPerson.peopleId, count: newPerson.count }; // Here is what needs fixing - Need to create function that only works off Table.js and not Model.js
+        keySchema = dynoUtils.createDynamoTree(keySchema)
       })
       afterEach(async () => {
         await delay(50);
@@ -89,11 +91,13 @@ describe("Model tests", () => {
     });
     describe("Delete Item", () => {
       beforeEach(() => {
-        keySchema = dynoUtils.getKeySchema(newPerson);
+        keySchema = { peopleId : newPerson.peopleId, count: newPerson.count };
         dynoMongo.ddb.putItem({
           TableName: personTable.table.TableName,
-          Item : newSchema
-        })
+          Item: dynoUtils.createDynamoTree(newPerson)
+        },(err,res) => { 
+          if (err) { console.log(err) };
+        });
       })
       it ("It should delete an item from the database", async () => {
         let res = "error";
@@ -125,6 +129,7 @@ describe("Read tests", () => {
     newSchema = null;
     personTable = null;
     keySchema = null;
+    new_query = null;
     Person = null;
     newPerson = null;
     delete dynoMongo.blueprints[tableName];
@@ -133,11 +138,12 @@ describe("Read tests", () => {
     beforeEach(() => {
       let params = {
         TableName: personTable.table.TableName,
-        Item: newPerson.newSchema
+        Item: dynoUtils.createDynamoTree(newPerson)
       };
-      keySchema = dynoUtils.getKeySchema(newPerson);
+      keySchema = { peopleId : newPerson.peopleId, count: newPerson.count };
       keySchema = dynoUtils.createDynamoTree(keySchema);
       dynoMongo.ddb.putItem(params,(err,res) => { 
+        if (err) { console.log(err) };
       });
     });
     afterEach(async () => {
@@ -168,39 +174,89 @@ describe("Read tests", () => {
     beforeEach(() => {
       let params = {
         TableName: personTable.table.TableName,
-        Item: newPerson.newSchema
+        Item: dynoUtils.createDynamoTree(newPerson)
       };
-      keySchema = {};
-      keySchema.otherId = newPerson.newSchema.otherId;
+      keySchema = { otherId : newPerson.otherId };
       keySchema = dynoUtils.createDynToJsonTree(keySchema);
+      new_query = {
+        projection: "People, #count, otherId, peopleId",
+        attributeNames: { "#count": "count" }
+      };
       dynoMongo.ddb.putItem(params,(err,res) => { 
+        if (err) { console.log(err) };
       });
     });
     afterEach(async () => {
       await delay(50);
-      keySchema = {};
-      keySchema = dynoUtils.getKeySchema(newPerson);
+      keySchema = { peopleId : newPerson.peopleId, count: newPerson.count };
       keySchema = dynoUtils.createDynamoTree(keySchema);
+      
       let params = {
         TableName: personTable.table.TableName,
         Key : keySchema
       };
       dynoMongo.ddb.deleteItem(params,(err,res) => { 
-        if (err) { 
-          console.log(err)
-        };
+        if (err) { console.log(err) };
       });
     })
     it ("It should get an item from the database", async () => {
       let res = "error";
       try {
         await delay(50);
-        res = await Person.query(keySchema)
+        res = await Person.query(keySchema, new_query)
       }
       catch(err) {
         console.debug(err);
       };
-      expect({ Item: res[0] }).toEqual({ Item: dynoUtils.createDynToJsonTree(newPerson.newSchema) });
+      expect({ Item: res[0] }).toEqual({ Item: dynoUtils.createDynToJsonTree(newPerson) });
+    });
+  });
+  describe("Update Item", () => {
+    beforeEach(() => {
+      let params = {
+        TableName: personTable.table.TableName,
+        Item: dynoUtils.createDynamoTree(newPerson)
+      };
+      keySchema = { peopleId : newPerson.peopleId, count: newPerson.count };
+      keySchema = dynoUtils.createDynToJsonTree(keySchema);
+      new_query = {
+        updateValues: "SET People[0].#person.age = :update_age",
+        conditionValues: "People[0].#person.age = :curr_age",
+        attributeNames: { "#person": "person_four" },
+        attributeValues: { 
+          ":update_age": 4,
+          ":curr_age": 2 
+        },
+        returnValues: "ALL_NEW"
+      };
+      dynoMongo.ddb.putItem(params,(err,res) => { 
+        if (err) { console.log(err) };
+      });
+    });
+    afterEach(async () => {
+      await delay(50);
+      keySchema = { peopleId : newPerson.peopleId, count: newPerson.count };
+      keySchema = dynoUtils.createDynamoTree(keySchema);
+      
+      let params = {
+        TableName: personTable.table.TableName,
+        Key : keySchema
+      };
+      dynoMongo.ddb.deleteItem(params,(err,res) => { 
+        if (err) { console.log(err) };
+      });
+    })
+    it ("It should get an item from the database", async () => {
+      let res = "error";
+      try {
+        await delay(50);
+        res = await Person.update(keySchema, new_query)
+      }
+      catch(err) {
+        console.debug(err);
+      };
+      newPerson.People[0].person_four.age = 4
+      expect({ Item: res }).toEqual({ Item: dynoUtils.createDynToJsonTree(newPerson) });
     });
   });
 });

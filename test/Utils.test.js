@@ -1,10 +1,11 @@
+"use strict";
 const dynoUtils = require("../lib/DynoUtils");
 const testObjects = require("./testObjects");
 const { Schema } = require("../");
 
 const { personObject, personSchemaDdb } = testObjects;
 
-personSchema = new Schema({
+var personSchema = new Schema({
   primary: {
     peopleId: {
       type: "string",

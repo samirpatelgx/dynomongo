@@ -1,4 +1,4 @@
-
+"use strict";
 const testObjects = require("./testObjects")
 const dynoMongo = require("../");
 const Schema = require("../lib/Schema")
